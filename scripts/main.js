@@ -5,6 +5,7 @@ window.addEventListener('DOMContentLoaded', function() {
 let deck = [];
 let dealerHand = [];
 let playerHand = [];
+let gameStarted = false;
 
 function buildDeck(deck){
   for(let i=0; i<13; i++){
@@ -26,12 +27,50 @@ buildDeck(deck);
 console.log(deck);
 
 function deal() {
+  document.getElementById("deal-button").disabled = true;
+  gameStarted = true;
   clearBoard();
+  document.getElementById("hit-button").disabled = false;
+  document.getElementById("stand-button").disabled = false;
   dealPlayer();
   dealDealer();
   dealPlayer();
   dealDealer();
-  displayPoints();
+  let dealerPoints = calculatePoints(dealerHand);
+  let playerPoints = calculatePoints(playerHand);
+  updatePoints(playerPoints, dealerPoints);
+  findDealWinner(playerPoints, dealerPoints);
+}
+
+function reset() {
+  clearBoard();
+  document.getElementById("deal-button").disabled = false;
+}
+
+function hit() {
+  if(gameStarted){
+    dealPlayer();
+    if (calculatePoints(dealerHand)<17){
+      dealDealer();
+    }
+    let dealerPoints = calculatePoints(dealerHand);
+    let playerPoints = calculatePoints(playerHand);
+    updatePoints(playerPoints, dealerPoints);
+    findHitWinner(playerPoints, dealerPoints);
+  }
+}
+
+function stand() {
+  if (gameStarted){
+    let dealerPoints = calculatePoints(dealerHand);
+    let playerPoints = calculatePoints(playerHand);
+    while(dealerPoints < 17) {
+      dealDealer();
+      dealerPoints = calculatePoints(dealerHand);
+    }
+    updatePoints(playerPoints, dealerPoints);
+    findStandWinner(playerPoints, dealerPoints);
+  }
 }
 
 function dealDealer() {
@@ -58,12 +97,6 @@ function dealPlayer() {
   return cardObject;
 }
 
-function hit() {
-  dealPlayer();
-  dealDealer();
-  displayPoints();
-}
-
 function getCardImage(card){
   let suit = card.suit;
   let rank = card.rank;
@@ -87,15 +120,19 @@ function getCardImage(card){
 }
 
 function clearBoard() {
-  const elements = document.getElementsByTagName("img");
+  let elements = document.getElementsByTagName("img");
   while(elements.length >0) {
     elements[0].parentNode.removeChild(elements[0]);
   }
-  document.getElementById("messages").innerText="";
   deck = [];
   playerHand = [];
   dealerHand = [];
   buildDeck(deck);
+  updatePoints(calculatePoints(playerHand), calculatePoints(dealerHand))
+  document.getElementById("hit-button").disabled = true;
+  document.getElementById("stand-button").disabled = true;
+  document.getElementById("messages").innerText="";
+  document.getElementById("winner-messages").innerText="";
 }
 
 function calculatePoints(hand) {
@@ -125,14 +162,65 @@ function updatePoints(playerPoints, dealerPoints) {
   document.getElementById("dealer-points").innerText=dealerPoints.toString();
 }
 
-function displayPoints() {
-  let playerPoints = calculatePoints(playerHand);
-  let dealerPoints = calculatePoints(dealerHand);
-  updatePoints(playerPoints, dealerPoints);
-  if (playerPoints > 21) {
+function findDealWinner(playerPoints, dealerPoints) {
+  if(playerPoints==21 && dealerPoints==21){
+    document.getElementById("winner-messages").innerText="It's a Draw!";
+    disableButtons;
+  }
+  else if (playerPoints==21){
+    document.getElementById("winner-messages").innerText="Player Wins!";
+    disableButtons;
+  }
+  else if (dealerPoints==21){
+    document.getElementById("winner-messages").innerText="Dealer Wins!";
+    disableButtons;
+  }
+  else {
+    document.getElementById("winner-messages").innerText="";
+  }
+}
+
+function findHitWinner(playerPoints, dealerPoints) {
+  if(playerPoints==21 && dealerPoints==21){
+    document.getElementById("winner-messages").innerText="It's a Draw!";
+    disableButtons;
+  }
+  else if (playerPoints>21){
+    document.getElementById("winner-messages").innerText="Dealer Wins!";
+    disableButtons();
     document.getElementById("messages").innerText="Player Busted!";
   }
-  else if (dealerPoints > 21) {
+  else if (dealerPoints>21){
+    document.getElementById("winner-messages").innerText="Player Wins!";
+    disableButtons;
     document.getElementById("messages").innerText="Dealer Busted!";
   }
+  else if (dealerPoints>playerPoints) {
+    document.getElementById("winner-messages").innerText="";
+  }
+}
+
+function findStandWinner(playerPoints, dealerPoints){
+  if (dealerPoints>21){
+    document.getElementById("winner-messages").innerText="Player Wins!";
+    disableButtons;
+    document.getElementById("messages").innerText="Dealer Busted!";
+  }
+  else if (playerPoints==21 && dealerPoints==21) {
+    document.getElementById("winner-messages").innerText="It's a Draw!";
+    disableButtons;
+  }
+  else if (dealerPoints>playerPoints){
+    document.getElementById("winner-messages").innerText="Dealer Wins!";
+    disableButtons();
+  }
+  else{
+    document.getElementById("winner-messages").innerText="Player Wins!";
+    disableButtons;
+  }
+}
+
+function disableButtons(){
+  document.getElementById("hit-button").disabled = true;
+  document.getElementById("stand-button").disabled = true;
 }

@@ -99,3 +99,9 @@ button[type="reset"]:hover {
   background: rgb(150, 7, 7);
   box-shadow: 0px 0px 10px 5px rgba(150, 7, 7, 0.63);
 }
+
+.winner-message {
+  color: red;
+  font-size: 20px;
+  text-align: center;
+}
